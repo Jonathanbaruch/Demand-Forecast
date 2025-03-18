@@ -73,7 +73,7 @@ st.sidebar.subheader("Restaurant Staffing")
 #st.sidebar.image("logo.jpg", use_container_width=True)  # Adjusts to sidebar width
 
 # Sidebar: Choose Page
-page = st.sidebar.selectbox("View", ["Forecast", "Overview"])
+page = st.sidebar.selectbox("View", ["Forecast"])
 
 # Sidebar: Choose Restaurant
 restaurant = st.sidebar.selectbox("Restaurant", ["Nulchemist", "Jordfjern", "Café Hector"])
@@ -87,9 +87,17 @@ df["Date"] = pd.to_datetime(df["Date"])
 # Create empty frame for optimal seatings
 df["Optimal_Seatings"] = 0  # There is no optimal seatings, only actual
 
+# Define date limits
+min_date = df["Date"].min().date()  # Earliest available date
+max_date = df["Date"].max().date() # Latest available date (set your own limit if needed)
 
-# Sidebar: Select a Date
-selected_date = st.sidebar.date_input("Date", df["Date"].min())
+# Sidebar: Date Selection (limited range)
+selected_date = st.sidebar.date_input(
+    "Date",
+    value=min_date,  # Default selection
+    min_value=min_date,  # Earliest allowed date
+    max_value=max_date  # Latest allowed date
+)
 
 # Filter Data for Selected Date
 filtered_df = df[df["Date"] == pd.to_datetime(selected_date)].copy()
@@ -187,6 +195,52 @@ with col_main:
 
     # Streamlit: Plotly Chart
     st.plotly_chart(fig_e)
+
+
+
+    ### Error Metrics ###
+
+    # Convert columns to numeric
+    filtered_df[selected_columns["Actual"]] = pd.to_numeric(filtered_df[selected_columns["Actual"]], errors="coerce")
+    filtered_df[selected_columns["Forecasted"]] = pd.to_numeric(filtered_df[selected_columns["Forecasted"]], errors="coerce")
+    filtered_df[selected_columns["Optimal"]] = pd.to_numeric(filtered_df[selected_columns["Optimal"]], errors="coerce")
+
+    if staffing_metric == "Employees":
+        # Calculate Metrics
+        mae_act = np.mean(np.abs(filtered_df[selected_columns["Actual"]] - filtered_df[selected_columns["Optimal"]]))
+        mape_act = np.mean(np.abs((filtered_df[selected_columns["Actual"]] - filtered_df[selected_columns["Optimal"]]) / filtered_df[selected_columns["Actual"]])) * 100
+
+        mae_fore = np.mean(np.abs(filtered_df[selected_columns["Forecasted"]] - filtered_df[selected_columns["Optimal"]]))
+        mape_fore = np.mean(np.abs((filtered_df[selected_columns["Forecasted"]] - filtered_df[selected_columns["Optimal"]]) / filtered_df[selected_columns["Forecasted"]])) * 100
+
+
+        # Replace NaN with 0
+        mape_act = 0 if np.isnan(mape_act) else mape_act
+        mape_fore = 0 if np.isnan(mape_fore) else mape_fore
+
+        # Display Metrics
+        st.write(f"**Actual Staffing: Average Error (MAPE):** {mape_act:.2f}%")
+        st.write(f"**Forecasted Staffing: Average Error (MAPE) Forecasted:** {mape_fore:.2f}%")
+
+        # Potential Savings by implementing forecast
+        potential_savings = (mae_act - mae_fore) * 7  # Multiply by 7 hours open
+        potential_savings = 0 if np.isnan(potential_savings) else potential_savings
+
+        st.write(f"**Potential Hours Saved by Implementing Forecast:** {potential_savings:.2f}")
+    
+    else:
+        # Calculate Metrics
+        mae_fore = np.mean(np.abs(filtered_df[selected_columns["Forecasted"]] - filtered_df[selected_columns["Actual"]]))
+
+        # Display Metrics
+        st.write(f"**Forecasted Seatings: Average Error:** {mae_fore:.2f}")
+        st.write(f"Explanation: The average difference pr. hour between the forecasted and actual seatings.")
+
+
+
+
+
+
 
 
 
