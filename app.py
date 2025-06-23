@@ -16,7 +16,7 @@ from utils import main
 
 ### Generate Data ###
 # Define parameters
-start_date = datetime(2025, 1, 1)
+start_date = datetime.today() - timedelta(days=90) # Weather api only allows 90 days back
 end_date = datetime.now() + timedelta(days=6) # amount of days we have weather forecast
 restaurants = ["Nulchemist", "Jordfjern", "Café Hector"]
 base_seatings = [5, 8, 7]
