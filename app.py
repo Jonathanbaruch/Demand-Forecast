@@ -353,9 +353,13 @@ with col_spacer:
 # RIGHT COLUMN: Weather Widget
 with col_side:
     st.markdown("### ☀️ Weather")
-    st.metric(label="Temperature", value=f"{filtered_df["Temperature"].iloc[0]}°C")
-    st.write(f"**Rain:** {filtered_df["Rain"].iloc[0]}mm")
+    temp = f"{filtered_df['Temperature'].iloc[0]}°C" if not filtered_df.empty else "0°C"
+    st.metric(label="Temperature", value=temp)
+    rain = f"{filtered_df['Rain'].iloc[0]}mm" if not filtered_df.empty else "0mm"
+    st.write(f"**Rain:** {rain}mm")
     #st.write(f"**Condition:** Sunny")
+
+
 
 
 
