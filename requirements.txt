@@ -6,3 +6,4 @@ openmeteo_requests
 requests-cache
 retry-requests
 statsmodels
+scipy==1.15.1
